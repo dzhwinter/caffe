@@ -71,7 +71,8 @@ void SplitLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bottom,
           cudaMemcpyDefault, stream_));
     }
   }
-  CUDA_CHECK(cudaStreamSynchronize(stream_));
+  // CUDA_CHECK(cudaStreamSynchronize(stream_));
+  CUDA_CHECK(cudaDeviceSynchronize());
 #endif
 }
 

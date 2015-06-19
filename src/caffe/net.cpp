@@ -18,6 +18,7 @@
 #include "caffe/util/io.hpp"
 #include "caffe/util/math_functions.hpp"
 #include "caffe/util/upgrade_proto.hpp"
+#include "caffe/util/device_alternate.hpp"
 
 #include "caffe/test/test_caffe_main.hpp"
 
@@ -333,15 +334,23 @@ void Net<Dtype>::SetupThreads(NetParameter* param) {
       if (i == j) { continue; }
       int can_access;
       CUDA_CHECK(cudaDeviceCanAccessPeer(&can_access,
-            device_map[i], device_map[j]));
+                                         device_map[i], device_map[j]));
       if (can_access) {
         CUDA_CHECK(cudaSetDevice(device_map[i]));
-        CUDA_CHECK(cudaDeviceEnablePeerAccess(device_map[j], 0));
-        LOG(INFO) << "Enabled P2P access: " << device_map[j] << " -> "
-          << device_map[i];
+
+        cudaError_t error;
+        error = cudaDeviceEnablePeerAccess(device_map[j], 0);
+        if (error == cudaErrorPeerAccessAlreadyEnabled) {
+          LOG(INFO) << "already enable P2P access" ;
+        } else if(error == cudaSuccess) {
+
+          // CUDA_CHECK(cudaDeviceEnablePeerAccess(device_map[j], 0));
+          LOG(INFO) << "Enabled P2P access: " << device_map[j] << " -> "
+                    << device_map[i];
+        }
       } else {
         LOG(INFO) << "Cannot enable P2P access: " << device_map[j] << " -> "
-          << device_map[i];
+                  << device_map[i];
       }
     }
   }

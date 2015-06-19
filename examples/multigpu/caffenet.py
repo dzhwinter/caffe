@@ -1,3 +1,5 @@
+import sys
+sys.path.insert(0,'../../python/')
 import caffe
 from caffe import layers as L, params as P
 from caffe.proto import caffe_pb2
@@ -64,7 +66,7 @@ def alexnet(n_dev):
         setattr(n, 'loss' + str(i + 1), net(i, 256 // n_dev))
 
     return n.to_proto()
-    
+
 def make_net():
     for n in range(1, 4):
         with open('cn-{}x.prototxt'.format(n), 'w') as f:
